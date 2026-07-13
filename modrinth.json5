@@ -1,35 +1,29 @@
 {
-  "projectId": "YOUR_PROJECT_ID_OR_SLUG",
+  "projectId": "4OB0zRTT",
   "loaders": [
-    "paper", "folia"
+    "paper",
+    "spigot",
+    "bukkit",
+    "purpur"
   ],
   "gameVersions": [
-    "1.21.4",
-    "1.21.3",
-    "1.21.2",
+    "1.21",
     "1.21.1",
-    "1.21"
+    "1.21.2",
+    "1.21.3",
+    "1.21.4",
+    "1.21.8"
   ],
   "dependencies": [
     {
-      "projectId": "your-dependency-id",
-      "versionId": "your-version-id",
-      "fileName": "your-file-name",
+      "projectId": "rZNwNOoR", // YueMiLibs
+      "versionId": "IujLCgG5", // v2.3.1
       "dependencyType": "required"
     },
     {
-      "projectId": "your-dependency-id",
-      "versionId": "your-version-id",
-      "fileName": "your-file-name",
-      "dependencyType": "optional"
-    },
-    {
-      "projectId": "your-dependency-id",
-      "dependencyType": "incompatible"
-    },
-    {
-      "projectId": "your-dependency-id",
-      "dependencyType": "embedded"
+      "projectId": "R8PzhBth", // MMO Mechanics
+      "versionId": "ScKQbzor", // v1.3.3
+      "dependencyType": "required"
     }
   ]
 }
