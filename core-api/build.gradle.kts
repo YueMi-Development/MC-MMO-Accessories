@@ -58,8 +58,8 @@ publishing {
 
                 licenses {
                     license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
+                        name.set("GNU Lesser General Public License v3.0")
+                        url.set("https://www.gnu.org/licenses/lgpl-3.0.txt")
                     }
                 }
 
