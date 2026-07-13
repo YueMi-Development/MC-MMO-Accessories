@@ -17,6 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -76,6 +77,15 @@ jobs:
 
       - name: Build Shaded JAR
         run: ./gradlew :core-plugin:build --no-daemon
+
+      - name: Generate Javadocs
+        run: ./gradlew :core-api:javadoc --no-daemon
+
+      - name: Deploy Javadocs to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: core-api/build/docs/javadoc
+          branch: gh-pages
 
       - name: Read Modrinth Configuration
         id: modrinth_config
