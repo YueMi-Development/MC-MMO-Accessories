@@ -10,6 +10,9 @@ public final class ExamplePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        new org.yuemi.config.api.ConfigManager(this, "org.yuemi.example.plugin.config.migrations").loadAndMigrate(this);
+        reloadConfig();
+
         this.api = new ExampleApiImpl();
 
         getServer().getServicesManager().register(

@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1" // Shadow plugin
+    id("com.gradleup.shadow") version "8.3.0" // Shadow plugin
 }
 
 val pluginName: String by project
@@ -32,6 +32,7 @@ tasks.processResources {
 
 dependencies {
     implementation(project(":core-api"))
+    implementation("org.yuemi:mc-config-libs:1.0.1")
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
 }
@@ -48,6 +49,8 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
     archiveBaseName.set(pluginName)
     archiveVersion.set(pluginVersion)
     archiveClassifier.set("")
+
+    relocate("org.yuemi.config", "${project.group}.libs.config")
 
     manifest {
         attributes(
