@@ -1,6 +1,10 @@
 name: '${pluginName}'
 version: '${version}'
-main: org.yuemi.Main
+main: org.yuemi.mmoaccessories.plugin.AccessoriesPlugin
 authors: [${authors}]
 contributors: [${contributors}]
 api-version: '${apiVersion}'
+softdepend: [
+  YueMiLibs,
+  MmoItems
+]

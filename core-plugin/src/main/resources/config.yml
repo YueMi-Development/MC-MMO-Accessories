@@ -1,4 +1,27 @@
 # MC-MMO-Accessories Configuration
 
 # Do not change this version!
-config-version: 1
+config-version: 2
+
+# Accessory slot types configuration
+# Each slot type has:
+#   display-name: Shown to players in GUI
+#   max-slots: Number of slots available for this type
+#   required-type: Item type tag required to equip in this slot (from MmoItems types)
+slot-types:
+  BELT:
+    display-name: "Belt"
+    max-slots: 1
+    required-type: "BELT"
+  GLOVES:
+    display-name: "Gloves"
+    max-slots: 2
+    required-type: "GLOVES"
+  RING:
+    display-name: "Ring"
+    max-slots: 2
+    required-type: "RING"
+  NECKLACE:
+    display-name: "Necklace"
+    max-slots: 1
+    required-type: "NECKLACE"
