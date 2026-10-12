@@ -6,5 +6,16 @@ contributors: [${contributors}]
 api-version: '${apiVersion}'
 softdepend: [
   YueMiLibs,
-  MmoItems
+  MmoItems,
+  MmoMechanics
 ]
+commands:
+  accessories:
+    description: Open the accessories GUI
+    usage: /accessories
+    aliases: [acc]
+    permission: accessories.open
+permissions:
+  accessories.open:
+    description: Allows opening the accessories GUI
+    default: true

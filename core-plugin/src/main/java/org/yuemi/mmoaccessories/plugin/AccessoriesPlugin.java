@@ -1,10 +1,13 @@
 package org.yuemi.mmoaccessories.plugin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
+import org.yuemi.mmoaccessories.plugin.command.AccessoriesCommand;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
+import org.yuemi.mmoaccessories.plugin.listener.AccessoryInteractionListener;
 
 public class AccessoriesPlugin extends JavaPlugin {
 
@@ -36,6 +39,22 @@ public class AccessoriesPlugin extends JavaPlugin {
 
         AccessoriesApiProvider.setApi(api);
 
+        // Register command
+        AccessoriesCommand command = new AccessoriesCommand(api);
+        getCommand("accessories").setExecutor(command);
+
+        // Register interaction listener
+        Object mmoMechanicsApi = getMmoMechanicsApi();
+        if (mmoMechanicsApi != null) {
+            getServer().getPluginManager().registerEvents(
+                new AccessoryInteractionListener(api, getLogger(), mmoMechanicsApi),
+                this
+            );
+            getLogger().info("Hooked into MmoMechanics for accessory skill triggering!");
+        } else {
+            getLogger().info("MmoMechanics not available - accessory mechanics disabled.");
+        }
+
         getLogger().info("MmoAccessories enabled!");
     }
 
@@ -48,5 +67,18 @@ public class AccessoriesPlugin extends JavaPlugin {
 
     public SlotConfig getSlotConfig() {
         return slotConfig;
+    }
+
+    private Object getMmoMechanicsApi() {
+        try {
+            Class<?> providerClass = Class.forName("org.yuemi.mmomechanics.api.MmoMechanicsApiProvider");
+            Object provider = providerClass.getMethod("getApi").invoke(null);
+            if (provider == null) {
+                return null;
+            }
+            return providerClass.getMethod("getApi").invoke(provider);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

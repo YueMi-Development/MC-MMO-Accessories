@@ -9,6 +9,7 @@ import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.api.AccessorySlot;
 import org.yuemi.mmoaccessories.api.SlotDefinition;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
+import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +24,14 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final NamespacedKey accessoriesKey;
     private final NamespacedKey itemIdKey;
+    private final AccessoriesGui gui;
 
     public AccessoriesApiImpl(AccessoriesPlugin plugin, SlotConfig slotConfig) {
         this.plugin = plugin;
         this.slotConfig = slotConfig;
         this.accessoriesKey = new NamespacedKey(plugin, "accessories");
         this.itemIdKey = new NamespacedKey(plugin, "id");
+        this.gui = new AccessoriesGui(this);
     }
 
     @Override
@@ -161,6 +164,11 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     @Override
     public boolean isFeatureEnabled(Player player) {
         return player.hasPermission("accessories.feature");
+    }
+
+    @Override
+    public void openGui(Player player) {
+        gui.open(player);
     }
 
     public SlotConfig getSlotConfig() {

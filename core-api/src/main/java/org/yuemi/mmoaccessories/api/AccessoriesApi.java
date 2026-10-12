@@ -61,4 +61,9 @@ public interface AccessoriesApi {
     void sendMessage(@NotNull Player player, @NotNull String message);
 
     boolean isFeatureEnabled(@NotNull Player player);
+
+    /**
+     * Open the accessories GUI for the player.
+     */
+    void openGui(@NotNull Player player);
 }
