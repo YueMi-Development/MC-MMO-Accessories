@@ -1,5 +1,5 @@
 ---
-name: minecraft-plugin-reference
+name: minecraft-plugin-manifest
 description: Master plugin metadata configuration for Bukkit, Spigot, and Paper servers. Covers plugin.yml and paper-plugin.yml file structures, dependency management, permission systems, command registration, and modern Paper features like bootstrappers and plugin loaders. Use PROACTIVELY for plugin setup, dependency resolution, load order issues, permission design, and cross-version compatibility.
 metadata:
   scope: plugin-configuration

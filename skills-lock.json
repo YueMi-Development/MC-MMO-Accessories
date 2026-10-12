@@ -55,6 +55,12 @@
       "source": "rmyndharis/antigravity-skills",
       "sourceType": "github",
       "computedHash": "9554042e1d088893e73554e0e44cd8e2251aede92f27810f0cb72e6c89e9a85a"
+    },
+    "minecraft-plugin-manifest": {
+      "source": "YueMi-Development/minecraft-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/minecraft-plugin-manifest/SKILL.md",
+      "computedHash": "700438844d35d60d9ff236495996cf75f8a5857d53a51f6d726b6be9c2965f80"
     }
   }
 }
