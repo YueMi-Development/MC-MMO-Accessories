@@ -35,6 +35,7 @@ public final class ReloadCommand extends BaseSubCommand {
         try {
             plugin.reloadConfig();
             plugin.getSlotConfig().loadFromConfig(plugin.getConfig());
+            plugin.getApi().reload();
             sendMessage(sender, "<green>Configuration reloaded successfully!</green>");
         } catch (Exception e) {
             sendMessage(sender, "<red>Failed to reload configuration: " + e.getMessage() + "</red>");

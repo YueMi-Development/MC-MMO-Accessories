@@ -7,17 +7,20 @@ import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.plugin.command.AccessoriesCommand;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
+import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
+import org.yuemi.mmoaccessories.plugin.listener.AccessoryDragListener;
 import org.yuemi.mmoaccessories.plugin.listener.AccessoryInteractionListener;
 
 public class AccessoriesPlugin extends JavaPlugin {
 
     private SlotConfig slotConfig;
     private AccessoriesApiImpl api;
+    private AccessoriesGui gui;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        
+
         // Check and migrate config
         new org.yuemi.config.api.ConfigManager(this, "org.yuemi.mmoaccessories.plugin.config.migration").loadAndMigrate(this);
         reloadConfig();
@@ -26,8 +29,10 @@ public class AccessoriesPlugin extends JavaPlugin {
         this.slotConfig = new SlotConfig();
         this.slotConfig.loadFromConfig(getConfig());
 
-        // Initialize API
+        // Initialize API and GUI
         this.api = new AccessoriesApiImpl(this, slotConfig);
+        this.api.init();
+        this.gui = api.getGuiConfig() != null ? new AccessoriesGui(api, slotConfig, api.getGuiConfig()) : null;
 
         // Register API
         getServer().getServicesManager().register(
@@ -59,6 +64,14 @@ public class AccessoriesPlugin extends JavaPlugin {
             getLogger().info("MmoMechanics not available - accessory mechanics disabled.");
         }
 
+        // Register drag-and-drop listener for GUI
+        if (gui != null) {
+            getServer().getPluginManager().registerEvents(
+                new AccessoryDragListener(api, gui),
+                this
+            );
+        }
+
         getLogger().info("MmoAccessories enabled!");
     }
 
@@ -71,6 +84,14 @@ public class AccessoriesPlugin extends JavaPlugin {
 
     public SlotConfig getSlotConfig() {
         return slotConfig;
+    }
+
+    public AccessoriesApiImpl getApi() {
+        return api;
+    }
+
+    public AccessoriesGui getGui() {
+        return gui;
     }
 
     private Object getMmoMechanicsApi() {

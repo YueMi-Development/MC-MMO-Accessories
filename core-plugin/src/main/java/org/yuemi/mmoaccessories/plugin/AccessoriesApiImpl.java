@@ -8,6 +8,7 @@ import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.api.AccessorySlot;
 import org.yuemi.mmoaccessories.api.SlotDefinition;
+import org.yuemi.mmoaccessories.plugin.config.GuiConfig;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
 
@@ -21,17 +22,27 @@ public class AccessoriesApiImpl implements AccessoriesApi {
 
     private final AccessoriesPlugin plugin;
     private final SlotConfig slotConfig;
+    private GuiConfig guiConfig;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final NamespacedKey accessoriesKey;
     private final NamespacedKey itemIdKey;
-    private final AccessoriesGui gui;
+    private AccessoriesGui gui;
 
     public AccessoriesApiImpl(AccessoriesPlugin plugin, SlotConfig slotConfig) {
         this.plugin = plugin;
         this.slotConfig = slotConfig;
         this.accessoriesKey = new NamespacedKey(plugin, "accessories");
         this.itemIdKey = new NamespacedKey(plugin, "id");
-        this.gui = new AccessoriesGui(this);
+    }
+
+    public void init() {
+        this.guiConfig = GuiConfig.loadFromConfig(plugin.getConfig());
+        this.gui = new AccessoriesGui(this, slotConfig, guiConfig);
+    }
+
+    public void reload() {
+        this.guiConfig = GuiConfig.loadFromConfig(plugin.getConfig());
+        this.gui = new AccessoriesGui(this, slotConfig, guiConfig);
     }
 
     @Override
@@ -173,6 +184,10 @@ public class AccessoriesApiImpl implements AccessoriesApi {
 
     public SlotConfig getSlotConfig() {
         return slotConfig;
+    }
+
+    public GuiConfig getGuiConfig() {
+        return guiConfig;
     }
 
     private boolean hasMmoItemsType(ItemStack item, String type) {

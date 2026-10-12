@@ -1,27 +1,76 @@
 # MC-MMO-Accessories Configuration
 
 # Do not change this version!
-config-version: 2
+config-version: 3
 
-# Accessory slot types configuration
 # Each slot type has:
-#   display-name: Shown to players in GUI
-#   max-slots: Number of slots available for this type
-#   required-type: Item type tag required to equip in this slot (from MmoItems types)
-slot-types:
+#   display-name: Display name shown in GUI
+#   max-slots: Number of accessory slots for this type
+#   required-type: MmoItems type tag required to equip
+#   gui:
+#     slots: List of inventory slot positions for the actual accessory slots
+#     icon: Material key for empty slot placeholder
+#     label-name: MiniMessage display name for the empty slot
+#     label-lore: MiniMessage lore lines for the empty slot
+slots:
   BELT:
     display-name: "Belt"
     max-slots: 1
     required-type: "BELT"
+    gui:
+      slots:
+        - 20
+      icon: "minecraft:light_gray_stained_glass_pane"
+      label-name: "<gold><bold>Belt Slot</bold></gold>"
+      label-lore:
+        - "<gray>Type: <green>BELT</green></gray>"
   GLOVES:
     display-name: "Gloves"
     max-slots: 2
     required-type: "GLOVES"
+    gui:
+      slots:
+        - 21
+        - 23
+      icon: "minecraft:white_stained_glass_pane"
+      label-name: "<aqua><bold>Gloves Slots</bold></aqua>"
+      label-lore:
+        - "<gray>Type: <green>GLOVES</green></gray>"
   RING:
     display-name: "Ring"
     max-slots: 2
     required-type: "RING"
+    gui:
+      slots:
+        - 30
+        - 32
+      icon: "minecraft:yellow_stained_glass_pane"
+      label-name: "<yellow><bold>Ring Slots</bold></yellow>"
+      label-lore:
+        - "<gray>Type: <green>RING</green></gray>"
   NECKLACE:
     display-name: "Necklace"
     max-slots: 1
     required-type: "NECKLACE"
+    gui:
+      slots:
+        - 39
+      icon: "minecraft:orange_stained_glass_pane"
+      label-name: "<light_purple><bold>Necklace Slot</bold></light_purple>"
+      label-lore:
+        - "<gray>Type: <green>NECKLACE</green></gray>"
+
+# Global GUI configuration
+gui:
+  title: "Accessories"
+  rows: 6
+  background:
+    enabled: true
+    icon: "minecraft:black_stained_glass_pane"
+  action-buttons:
+    close:
+      slot: 53
+      icon: "minecraft:arrow"
+      name: "<red><bold>Close</bold></red>"
+      lore:
+        - "<gray>Close this menu</gray>"
