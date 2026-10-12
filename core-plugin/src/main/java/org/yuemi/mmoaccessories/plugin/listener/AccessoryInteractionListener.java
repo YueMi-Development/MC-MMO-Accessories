@@ -4,8 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
@@ -93,6 +91,8 @@ public class AccessoryInteractionListener implements Listener {
             // Skills are bound to the item via MmoItems config
             // Each skill has triggers, targeters, and mechanics
             // Mechanics with matching trigger are executed via SkillExecutor
+            // The source_item context variable is set so conditions like
+            // "isequippedasaccessory" can verify the item's accessory state
         } catch (Exception e) {
             // Silently ignore - items not bound or MmoItems unavailable
         }
