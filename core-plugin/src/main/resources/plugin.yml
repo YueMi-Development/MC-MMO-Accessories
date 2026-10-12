@@ -11,11 +11,31 @@ softdepend: [
 ]
 commands:
   accessories:
-    description: Open the accessories GUI
-    usage: /accessories
+    description: Main command for MC-MMO-Accessories
     aliases: [acc]
-    permission: accessories.open
+    usage: /accessories <subcommand>
 permissions:
-  accessories.open:
-    description: Allows opening the accessories GUI
+  accessories.command.open:
+    description: Open your own accessories GUI
     default: true
+  accessories.command.equip:
+    description: Equip item from main hand
+    default: true
+  accessories.command.reload:
+    description: Reload plugin config
+    default: op
+  accessories.command.list:
+    description: List a player's accessories
+    default: op
+  accessories.command.view:
+    description: Open another player's accessories GUI
+    default: op
+  accessories.command.wipe:
+    description: Wipe a player's accessories
+    default: op
+  accessories.command.set:
+    description: Set a slot for a player
+    default: op
+  accessories.command.give:
+    description: Give an accessory item to a player
+    default: op

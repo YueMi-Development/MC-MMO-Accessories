@@ -40,8 +40,12 @@ public class AccessoriesPlugin extends JavaPlugin {
         AccessoriesApiProvider.setApi(api);
 
         // Register command
-        AccessoriesCommand command = new AccessoriesCommand(api);
-        getCommand("accessories").setExecutor(command);
+        AccessoriesCommand command = new AccessoriesCommand(api, this);
+        var accessoriesCmd = getCommand("accessories");
+        if (accessoriesCmd != null) {
+            accessoriesCmd.setExecutor(command);
+            accessoriesCmd.setTabCompleter(command);
+        }
 
         // Register interaction listener
         Object mmoMechanicsApi = getMmoMechanicsApi();
