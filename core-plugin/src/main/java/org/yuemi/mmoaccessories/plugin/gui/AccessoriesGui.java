@@ -195,7 +195,7 @@ public final class AccessoriesGui {
             lore.add(Component.text("Slot: ").color(NamedTextColor.DARK_GRAY)
                     .append(Component.text(def.displayName()).color(NamedTextColor.GRAY)));
             lore.add(Component.text("Type: ").color(NamedTextColor.DARK_GRAY)
-                    .append(Component.text(def.requiredType()).color(NamedTextColor.GRAY)));
+                    .append(Component.text(def.primaryType()).color(NamedTextColor.GRAY)));
             meta.lore(lore);
             meta.addItemFlags(ItemFlag.values());
             display.setItemMeta(meta);

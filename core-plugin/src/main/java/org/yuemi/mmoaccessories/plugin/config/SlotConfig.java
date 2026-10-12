@@ -41,11 +41,20 @@ public class SlotConfig {
 
             int maxSlots = config.getInt(path + ".max-slots", builtin != null ? builtin.getMaxSlots() : 1);
             String displayName = config.getString(path + ".display-name", key);
-            String requiredType = config.getString(path + ".required-type", key.toUpperCase());
 
+            List<String> acceptedTypes = loadAcceptedTypes(config, path, slotId);
             AccessorySlotGui gui = loadGuiConfig(config, path + ".gui", slotId, maxSlots);
-            slotDefinitions.put(slotId, new SlotDefinition(slotId, displayName, maxSlots, requiredType, gui));
+            slotDefinitions.put(slotId, new SlotDefinition(slotId, displayName, maxSlots, acceptedTypes, gui));
         }
+    }
+
+    private List<String> loadAcceptedTypes(FileConfiguration config, String path, AccessorySlotId slotId) {
+        List<String> types = config.getStringList(path + ".accepted-types");
+        if (types == null || types.isEmpty()) {
+            // Fall back to slot id
+            return List.of(slotId.id());
+        }
+        return types;
     }
 
     private AccessorySlotGui loadGuiConfig(FileConfiguration config, String path, AccessorySlotId slotId, int maxSlots) {
@@ -77,11 +86,12 @@ public class SlotConfig {
     }
 
     private SlotDefinition defaultDefinition(AccessorySlot slot) {
+        List<String> accepted = List.of(slot.getRequiredType());
         return new SlotDefinition(
             AccessorySlotId.of(slot),
             slot.name(),
             slot.getMaxSlots(),
-            slot.getRequiredType(),
+            accepted,
             defaultGuiFor(AccessorySlotId.of(slot), slot.getMaxSlots())
         );
     }
@@ -161,7 +171,7 @@ public class SlotConfig {
     }
 
     public String getRequiredType(AccessorySlotId slotId) {
-        return getSlotDefinition(slotId).requiredType();
+        return getSlotDefinition(slotId).primaryType();
     }
 
     public String getDisplayName(AccessorySlot slot) {
@@ -174,6 +184,14 @@ public class SlotConfig {
 
     public Map<AccessorySlotId, SlotDefinition> getAllSlotDefinitions() {
         return Map.copyOf(slotDefinitions);
+    }
+
+    public List<String> getAcceptedTypes(AccessorySlot slot) {
+        return getAcceptedTypes(AccessorySlotId.of(slot));
+    }
+
+    public List<String> getAcceptedTypes(AccessorySlotId slotId) {
+        return getSlotDefinition(slotId).acceptedTypes();
     }
 }
 

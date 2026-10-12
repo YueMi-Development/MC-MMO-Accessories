@@ -127,9 +127,18 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         if (item == null || !item.hasItemMeta()) {
             return false;
         }
-        
-        String requiredType = slotConfig.getRequiredType(slot);
-        return hasMmoItemsType(item, requiredType);
+
+        List<String> accepted = slotConfig.getAcceptedTypes(slot);
+        if (accepted.isEmpty()) {
+            return false;
+        }
+
+        List<String> itemTypes = getMmoItemTypes(item);
+        if (itemTypes.isEmpty()) {
+            return false;
+        }
+
+        return itemTypes.stream().anyMatch(accepted::contains);
     }
 
     @Override
@@ -137,8 +146,9 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         if (item == null || !item.hasItemMeta()) {
             return false;
         }
-        
-        return hasMmoItemsType(item, "ACCESSORY");
+
+        List<String> types = getMmoItemTypes(item);
+        return types.contains("ACCESSORY");
     }
 
     @Override
@@ -190,19 +200,19 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         return guiConfig;
     }
 
-    private boolean hasMmoItemsType(ItemStack item, String type) {
+    private List<String> getMmoItemTypes(ItemStack item) {
         try {
             Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
             Class<?> mmoItemsProviderClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
             Object api = mmoItemsProviderClass.getMethod("getApi").invoke(null);
             if (api != null) {
-                Boolean hasType = (Boolean) mmoItemsApiClass.getMethod("hasType", ItemStack.class, String.class)
-                        .invoke(api, item, type);
-                return hasType != null && hasType;
+                Object result = mmoItemsApiClass.getMethod("getItemTypes", ItemStack.class).invoke(api, item);
+                if (result instanceof java.util.List<?> list) {
+                    return (List<String>) list;
+                }
             }
         } catch (Exception ignored) {}
-        
-        return false;
+        return List.of();
     }
 
     private int getSlotOffset(AccessorySlot slot) {

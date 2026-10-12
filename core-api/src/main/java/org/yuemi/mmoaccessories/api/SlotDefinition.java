@@ -11,21 +11,29 @@ public record SlotDefinition(
     AccessorySlotId type,
     String displayName,
     int maxSlots,
-    String requiredType,
+    List<String> acceptedTypes,
     AccessorySlotGui gui
 ) {
     /**
      * Create a slot definition without GUI config (backward compat).
      */
-    public SlotDefinition(AccessorySlotId type, String displayName, int maxSlots, String requiredType) {
-        this(type, displayName, maxSlots, requiredType, null);
+    public SlotDefinition(AccessorySlotId type, String displayName, int maxSlots, List<String> acceptedTypes) {
+        this(type, displayName, maxSlots, acceptedTypes, null);
+    }
+
+    /**
+     * Get the primary/display type (first item in acceptedTypes).
+     * Used for display in lore, etc.
+     */
+    public String primaryType() {
+        return acceptedTypes.isEmpty() ? type.id() : acceptedTypes.get(0);
     }
 
     public static SlotDefinition of(
         AccessorySlotId type,
         String displayName,
         int maxSlots,
-        String requiredType,
+        @NotNull List<String> acceptedTypes,
         @NotNull List<Integer> slots,
         @NotNull String icon,
         @NotNull String labelName
@@ -34,7 +42,7 @@ public record SlotDefinition(
             type,
             displayName,
             maxSlots,
-            requiredType,
+            acceptedTypes,
             AccessorySlotGui.defaultConfig(type, slots, icon, labelName)
         );
     }

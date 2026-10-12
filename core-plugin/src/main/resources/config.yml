@@ -1,12 +1,12 @@
 # MC-MMO-Accessories Configuration
 
 # Do not change this version!
-config-version: 3
+config-version: 4
 
 # Each slot type has:
 #   display-name: Display name shown in GUI
 #   max-slots: Number of accessory slots for this type
-#   required-type: MmoItems type tag required to equip
+#   accepted-types: List of types any-of matching (item matches if it has any of these types)
 #   gui:
 #     slots: List of inventory slot positions for the actual accessory slots
 #     icon: Material key for empty slot placeholder
@@ -16,7 +16,9 @@ slots:
   BELT:
     display-name: "Belt"
     max-slots: 1
-    required-type: "BELT"
+    accepted-types:
+      - "BELT"
+      - "WAIST"
     gui:
       slots:
         - 20
@@ -27,7 +29,9 @@ slots:
   GLOVES:
     display-name: "Gloves"
     max-slots: 2
-    required-type: "GLOVES"
+    accepted-types:
+      - "GLOVES"
+      - "HAND"
     gui:
       slots:
         - 21
@@ -39,7 +43,8 @@ slots:
   RING:
     display-name: "Ring"
     max-slots: 2
-    required-type: "RING"
+    accepted-types:
+      - "RING"
     gui:
       slots:
         - 30
@@ -51,7 +56,9 @@ slots:
   NECKLACE:
     display-name: "Necklace"
     max-slots: 1
-    required-type: "NECKLACE"
+    accepted-types:
+      - "NECKLACE"
+      - "AMULET"
     gui:
       slots:
         - 39
