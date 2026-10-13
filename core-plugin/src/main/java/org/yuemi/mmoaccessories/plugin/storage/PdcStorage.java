@@ -13,20 +13,36 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Player PersistentDataContainer storage.
- * Default storage backend - stores accessory data in player's PDC.
+ * Player {@code PersistentDataContainer} storage.
+ *
+ * <p>Default storage backend. Stores a single pipe-delimited string of
+ * accessory item ids under the {@code accessories:accessories}
+ * {@link NamespacedKey} in each player's PDC. No schema upgrades beyond
+ * re-selecting the storage type in {@code config.yml}.
+ *
+ * <p>Limitations: only the currently-online player can be read or
+ * written, since Bukkit only exposes a player's PDC while they're
+ * connected. Cross-server scenarios need a database backend.
  */
 public class PdcStorage implements AccessoryStorage {
 
     private Plugin plugin;
     private NamespacedKey accessoriesKey;
 
+    /**
+     * Initialise the backend. Reads {@code storage.sqlite.file} (default
+     * {@code accessories.db}) and creates the database file and
+     * {@code accessories} table if they don't already exist.
+     */
     @Override
     public void initialize(Plugin plugin, FileConfiguration config) {
         this.plugin = plugin;
         this.accessoriesKey = new NamespacedKey(plugin, "accessories");
     }
 
+    /**
+     * @return the per-player item-id list read from PDC, in slot order
+     */
     @Override
     public @NotNull List<String> loadAccessories(UUID playerUuid) {
         Player player = getPlayer(playerUuid);
@@ -43,6 +59,11 @@ public class PdcStorage implements AccessoryStorage {
         return accessories;
     }
 
+    /**
+     * Replace the player's record with {@code itemIds}. Empty strings
+     * (representing empty slots) are preserved; the resulting PDC string
+     * is {@code id0|id1|...|idN}.
+     */
     @Override
     public void saveAccessories(UUID playerUuid, @NotNull List<String> itemIds) {
         Player player = getPlayer(playerUuid);
@@ -56,6 +77,9 @@ public class PdcStorage implements AccessoryStorage {
         player.getPersistentDataContainer().set(accessoriesKey, PersistentDataType.STRING, sb.toString());
     }
 
+    /**
+     * Remove the {@code accessories:accessories} key from the player's PDC.
+     */
     @Override
     public void clearAccessories(UUID playerUuid) {
         Player player = getPlayer(playerUuid);
@@ -63,6 +87,7 @@ public class PdcStorage implements AccessoryStorage {
         player.getPersistentDataContainer().remove(accessoriesKey);
     }
 
+    /** No-op: PDC needs no teardown. */
     @Override
     public void shutdown() {
         // No-op

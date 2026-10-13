@@ -10,6 +10,15 @@ import org.yuemi.mmoaccessories.plugin.command.BaseSubCommand;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@code /accessories view <player>} — opens another player's accessories
+ * GUI from the sender's perspective.
+ *
+ * <p>Sender: must be a player. Permission: {@code accessories.command.view`.
+ * Args: {@code <player>} (online player). The target's own GUI is opened
+ * so the in-slot trigger dispatch and the storage backend operate on the
+ * target's data.
+ */
 public final class ViewCommand extends BaseSubCommand {
 
     private final AccessoriesApi api;

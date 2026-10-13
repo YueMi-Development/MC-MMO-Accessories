@@ -14,6 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@code /accessories list <player>} — list the target's currently equipped
+ * accessories with their slot and display name.
+ *
+ * <p>Sender: any (player or console). Permission:
+ * {@code accessories.command.list}. Args: {@code <player>} (online player
+ * name; not validated for offline players — only online targets resolve
+ * their items).
+ */
 public final class ListCommand extends BaseSubCommand {
 
     private final AccessoriesApi api;

@@ -39,6 +39,12 @@ public class MigrationStep2To3 implements MigrationStep {
         return 3;
     }
 
+    /**
+     * Convert the old {@code slot-types} block into the {@code slots}
+     * block with full {@code gui} sections, and add a top-level
+     * {@code gui} block with default title / rows / background / close
+     * button when missing.
+     */
     @Override
     public void migrate(@NotNull FileConfiguration config) {
         // Clear the old structure

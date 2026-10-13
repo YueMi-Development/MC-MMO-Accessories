@@ -11,6 +11,16 @@ import org.yuemi.mmoaccessories.plugin.command.BaseSubCommand;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@code /accessories wipe <player>} — unequip every accessory the target
+ * has equipped and return the items to the target's inventory (drops
+ * straight to the world if the inventory is full).
+ *
+ * <p>Sender: any (player or console). Permission:
+ * {@code accessories.command.wipe`. Args: {@code <player>} (online player).
+ * Each removed accessory fires the {@code onUnequip} trigger through
+ * MMO Mechanics.
+ */
 public final class WipeCommand extends BaseSubCommand {
 
     private final AccessoriesApi api;

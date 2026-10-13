@@ -13,7 +13,15 @@ import java.util.UUID;
 
 /**
  * SQLite file-based storage.
- * Stores accessory data in a local SQLite database file.
+ *
+ * <p>Stores accessory data in a local SQLite database file
+ * ({@code <pluginDataFolder>/<storage.sqlite.file>}, default
+ * {@code accessories.db}). One row per (player_uuid, slot_index)
+ * combination, keyed on a composite primary key.
+ *
+ * <p>Reads and writes use a single connection (no connection pool). The
+ * save path uses an explicit transaction (delete-all + batched insert)
+ * to keep the per-player state atomic.
  */
 public class SqliteStorage implements AccessoryStorage {
 
@@ -21,6 +29,10 @@ public class SqliteStorage implements AccessoryStorage {
     private Connection connection;
     private File databaseFile;
 
+    /**
+     * Open the SQLite file at {@code storage.sqlite.file} and create the
+     * {@code accessories} table if it doesn't already exist.
+     */
     @Override
     public void initialize(Plugin plugin, FileConfiguration config) {
         this.plugin = plugin;
@@ -51,6 +63,7 @@ public class SqliteStorage implements AccessoryStorage {
         }
     }
 
+    /** @return the per-player item-id list, in slot order, with empty slots filled in as empty strings. */
     @Override
     public @NotNull List<String> loadAccessories(UUID playerUuid) {
         List<String> accessories = new ArrayList<>();
@@ -76,6 +89,13 @@ public class SqliteStorage implements AccessoryStorage {
         return accessories;
     }
 
+    /**
+     * Replace the player's row set with the given item-id list. Wrapped
+     * in a transaction: existing rows for the player are deleted first,
+     * then the new rows are inserted via a JDBC batch. Empty strings
+     * (representing empty slots) are skipped, so the table only stores
+     * populated slots.
+     */
     @Override
     public void saveAccessories(UUID playerUuid, @NotNull List<String> itemIds) {
         if (connection == null) return;
@@ -108,6 +128,10 @@ public class SqliteStorage implements AccessoryStorage {
         }
     }
 
+    /**
+     * Delete every row for the player. No-op if the player has no
+     * saved record.
+     */
     @Override
     public void clearAccessories(UUID playerUuid) {
         if (connection == null) return;
@@ -120,6 +144,9 @@ public class SqliteStorage implements AccessoryStorage {
         }
     }
 
+    /**
+     * Close the underlying JDBC connection. Idempotent.
+     */
     @Override
     public void shutdown() {
         try {

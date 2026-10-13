@@ -18,7 +18,17 @@ import java.util.UUID;
 
 /**
  * MongoDB storage.
- * Stores accessory data as documents in a MongoDB collection.
+ *
+ * <p>Configuration under {@code storage.mongodb.*}:
+ * <ul>
+ *   <li>{@code uri} (default {@code mongodb://localhost:27017})</li>
+ *   <li>{@code database} (default {@code minecraft})</li>
+ *   <li>{@code collection} (default {@code accessories})</li>
+ * </ul>
+ *
+ * <p>Each player is stored as a single document keyed by
+ * {@code _id = playerUuid} with an {@code items} array of item ids in
+ * slot order. Writes use an upsert replace.
  */
 public class MongoStorage implements AccessoryStorage {
 
@@ -26,6 +36,11 @@ public class MongoStorage implements AccessoryStorage {
     private MongoClient mongoClient;
     private MongoCollection<Document> collection;
 
+    /**
+     * Connect to the MongoDB instance at {@code storage.mongodb.uri} and
+     * obtain a handle to the {@code storage.mongodb.collection}
+     * collection inside the {@code storage.mongodb.database} database.
+     */
     @Override
     public void initialize(Plugin plugin, FileConfiguration config) {
         this.plugin = plugin;
@@ -42,6 +57,7 @@ public class MongoStorage implements AccessoryStorage {
         }
     }
 
+    /** @return the {@code items} array from the player's document, in slot order, or empty if no record exists. */
     @Override
     public @NotNull List<String> loadAccessories(UUID playerUuid) {
         List<String> accessories = new ArrayList<>();
@@ -58,6 +74,11 @@ public class MongoStorage implements AccessoryStorage {
         return accessories;
     }
 
+    /**
+     * Replace the player's document with a new one containing
+     * {@code itemIds} as the {@code items} array. Upsert: if the
+     * document doesn't exist it's created.
+     */
     @Override
     public void saveAccessories(UUID playerUuid, @NotNull List<String> itemIds) {
         if (collection == null) return;
@@ -70,12 +91,18 @@ public class MongoStorage implements AccessoryStorage {
         );
     }
 
+    /**
+     * Delete the player's document.
+     */
     @Override
     public void clearAccessories(UUID playerUuid) {
         if (collection == null) return;
         collection.deleteOne(Filters.eq("_id", playerUuid.toString()));
     }
 
+    /**
+     * Close the {@link MongoClient}. Idempotent.
+     */
     @Override
     public void shutdown() {
         if (mongoClient != null) {

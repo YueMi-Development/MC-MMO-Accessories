@@ -7,6 +7,14 @@ import org.yuemi.mmoaccessories.plugin.command.BaseSubCommand;
 
 import java.util.List;
 
+/**
+ * {@code /accessories reload} — re-reads {@code config.yml} and rebuilds
+ * the slot + GUI state.
+ *
+ * <p>Sender: any (player or console). Permission:
+ * {@code accessories.command.reload}. No arguments. Errors during reload
+ * are reported back to the sender and logged to the plugin log.
+ */
 public final class ReloadCommand extends BaseSubCommand {
 
     private final AccessoriesPlugin plugin;

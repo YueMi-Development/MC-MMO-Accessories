@@ -4,7 +4,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.yuemi.config.api.MigrationStep;
 
+/**
+ * Migrates config from v1 (no slot config) to v2 (introduces a
+ * {@code slot-types} block with default entries for the four built-in
+ * slot types).
+ *
+ * <p>Adds {@code slot-types.BELT/GLOVES/RING/NECKLACE} entries with their
+ * default {@code display-name}, {@code max-slots} and {@code required-type}
+ * values if the {@code slot-types} block is missing.
+ */
 public class MigrationStep1To2 implements MigrationStep {
+
     @Override
     public int getTargetVersion() {
         return 2;

@@ -8,6 +8,12 @@ import org.yuemi.mmoaccessories.plugin.command.BaseSubCommand;
 
 import java.util.List;
 
+/**
+ * {@code /accessories open} — opens the player's own accessories GUI.
+ *
+ * <p>Sender: must be a player. Permission: {@code accessories.command.open}.
+ * No arguments.
+ */
 public final class OpenCommand extends BaseSubCommand {
 
     private final AccessoriesApi api;

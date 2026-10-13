@@ -17,14 +17,32 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * MySQL/MariaDB connection pool storage.
- * Uses HikariCP for connection pooling.
+ * MySQL / MariaDB storage backed by HikariCP.
+ *
+ * <p>Configuration under {@code storage.mysql.*}:
+ * <ul>
+ *   <li>{@code host} (default {@code localhost})</li>
+ *   <li>{@code port} (default {@code 3306})</li>
+ *   <li>{@code database} (default {@code minecraft})</li>
+ *   <li>{@code username} / {@code password}</li>
+ *   <li>{@code pool-size} (default {@code 10})</li>
+ * </ul>
+ *
+ * <p>One row per (player_uuid, slot_index). Reads and writes go through
+ * a HikariCP pool (named {@code MmoAccessories-MySQL}). The save path
+ * uses an explicit transaction (delete-all + batched insert) so the
+ * per-player state is atomic.
  */
 public class MySqlStorage implements AccessoryStorage {
 
     private Plugin plugin;
     private HikariDataSource dataSource;
 
+    /**
+     * Build the Hikari config from {@code storage.mysql.*} and create
+     * the {@code accessories} table if it doesn't already exist. The
+     * pool is named {@code MmoAccessories-MySQL}.
+     */
     @Override
     public void initialize(Plugin plugin, FileConfiguration config) {
         this.plugin = plugin;
@@ -59,6 +77,7 @@ public class MySqlStorage implements AccessoryStorage {
         }
     }
 
+    /** @return the per-player item-id list, in slot order, with empty slots filled in as empty strings. */
     @Override
     public @NotNull List<String> loadAccessories(UUID playerUuid) {
         List<String> accessories = new ArrayList<>();
@@ -84,6 +103,12 @@ public class MySqlStorage implements AccessoryStorage {
         return accessories;
     }
 
+    /**
+     * Replace the player's row set with the given item-id list. Wrapped
+     * in a transaction; existing rows are deleted first, then the new
+     * rows are inserted via a JDBC batch. Empty strings (representing
+     * empty slots) are skipped.
+     */
     @Override
     public void saveAccessories(UUID playerUuid, @NotNull List<String> itemIds) {
         if (dataSource == null) return;
@@ -112,6 +137,9 @@ public class MySqlStorage implements AccessoryStorage {
         }
     }
 
+    /**
+     * Delete every row for the player.
+     */
     @Override
     public void clearAccessories(UUID playerUuid) {
         if (dataSource == null) return;
@@ -125,6 +153,9 @@ public class MySqlStorage implements AccessoryStorage {
         }
     }
 
+    /**
+     * Close the HikariCP pool. Idempotent.
+     */
     @Override
     public void shutdown() {
         if (dataSource != null && !dataSource.isClosed()) {

@@ -15,6 +15,11 @@ public class MigrationStep4To5 implements MigrationStep {
         return 5;
     }
 
+    /**
+     * Introduce the {@code storage} block with all four backend
+     * sub-sections (pdc, sqlite, mysql, mongodb) using their default
+     * connection values. The {@code storage.type} is left at {@code pdc}.
+     */
     @Override
     public void migrate(@NotNull FileConfiguration config) {
         if (!config.contains("storage")) {

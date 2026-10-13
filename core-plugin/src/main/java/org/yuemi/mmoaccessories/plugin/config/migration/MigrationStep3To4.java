@@ -20,6 +20,11 @@ public class MigrationStep3To4 implements MigrationStep {
         return 4;
     }
 
+    /**
+     * Convert each slot's {@code required-type} string to an
+     * {@code accepted-types} list (single-element). Removes the now-obsolete
+     * {@code required-type} key.
+     */
     @Override
     public void migrate(@NotNull FileConfiguration config) {
         if (config.contains("slots")) {
