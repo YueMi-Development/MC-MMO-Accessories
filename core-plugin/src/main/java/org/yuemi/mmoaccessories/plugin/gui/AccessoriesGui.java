@@ -256,28 +256,8 @@ public final class AccessoriesGui {
     }
 
     private ItemStack annotateEquipped(ItemStack content, SlotDefinition def) {
-        ItemStack display = content.clone();
-        ItemMeta meta = display.getItemMeta();
-        if (meta != null) {
-            List<Component> lore = meta.lore();
-            if (lore == null) lore = new ArrayList<>();
-            else lore = new ArrayList<>(lore);
-            // Remove any existing accessory-type markers we previously added
-            lore.removeIf(c -> {
-                String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-                        .plainText().serialize(c);
-                return plain.startsWith("Type: ") || plain.startsWith("Slot: ");
-            });
-            lore.add(Component.empty());
-            lore.add(Component.text("Slot: ").color(NamedTextColor.DARK_GRAY)
-                    .append(Component.text(def.displayName()).color(NamedTextColor.GRAY)));
-            lore.add(Component.text("Type: ").color(NamedTextColor.DARK_GRAY)
-                    .append(Component.text(def.primaryType()).color(NamedTextColor.GRAY)));
-            meta.lore(lore);
-            meta.addItemFlags(ItemFlag.values());
-            display.setItemMeta(meta);
-        }
-        return display;
+        // Return the item as-is without appending slot/type lore
+        return content.clone();
     }
 
     private ItemStack createEmptySlotItemStack(SlotDefinition def, AccessorySlotGui gui) {
