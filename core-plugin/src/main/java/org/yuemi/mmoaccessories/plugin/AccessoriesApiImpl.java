@@ -8,6 +8,7 @@ import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.api.AccessorySlot;
 import org.yuemi.mmoaccessories.api.SlotDefinition;
+import org.yuemi.mmoaccessories.api.storage.AccessoryStorage;
 import org.yuemi.mmoaccessories.plugin.config.GuiConfig;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
@@ -23,25 +24,26 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     private final AccessoriesPlugin plugin;
     private final SlotConfig slotConfig;
     private GuiConfig guiConfig;
+    private AccessoryStorage storage;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final NamespacedKey accessoriesKey;
     private final NamespacedKey itemIdKey;
     private AccessoriesGui gui;
 
     public AccessoriesApiImpl(AccessoriesPlugin plugin, SlotConfig slotConfig) {
         this.plugin = plugin;
         this.slotConfig = slotConfig;
-        this.accessoriesKey = new NamespacedKey(plugin, "accessories");
         this.itemIdKey = new NamespacedKey(plugin, "id");
     }
 
     public void init() {
         this.guiConfig = GuiConfig.loadFromConfig(plugin.getConfig());
+        this.storage = plugin.getStorage();
         this.gui = new AccessoriesGui(this, slotConfig, guiConfig);
     }
 
     public void reload() {
         this.guiConfig = GuiConfig.loadFromConfig(plugin.getConfig());
+        this.storage = plugin.getStorage();
         this.gui = new AccessoriesGui(this, slotConfig, guiConfig);
     }
 
@@ -289,25 +291,12 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     }
 
     private List<String> getAccessoriesList(Player player) {
-        List<String> defaultList = new ArrayList<>();
-        
-        String stored = player.getPersistentDataContainer().get(accessoriesKey, PersistentDataType.STRING);
-        if (stored != null && !stored.isEmpty()) {
-            String[] parts = stored.split("\\|");
-            for (String part : parts) {
-                defaultList.add(part.isEmpty() ? "" : part);
-            }
-        }
-        
-        return defaultList;
+        if (storage == null) return new ArrayList<>();
+        return storage.loadAccessories(player.getUniqueId());
     }
 
     private void saveAccessories(Player player, List<String> accessories) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < accessories.size(); i++) {
-            if (i > 0) sb.append("|");
-            sb.append(accessories.get(i));
-        }
-        player.getPersistentDataContainer().set(accessoriesKey, PersistentDataType.STRING, sb.toString());
+        if (storage == null) return;
+        storage.saveAccessories(player.getUniqueId(), accessories);
     }
 }

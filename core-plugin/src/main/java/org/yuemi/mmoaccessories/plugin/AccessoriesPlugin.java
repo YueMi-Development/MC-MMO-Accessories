@@ -5,6 +5,8 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
+import org.yuemi.mmoaccessories.api.storage.AccessoryStorage;
+import org.yuemi.mmoaccessories.api.storage.AccessoryStorageFactory;
 import org.yuemi.mmoaccessories.plugin.command.AccessoriesCommand;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
@@ -15,11 +17,16 @@ public class AccessoriesPlugin extends JavaPlugin {
     private SlotConfig slotConfig;
     private AccessoriesApiImpl api;
     private AccessoriesGui gui;
+    private AccessoryStorage storage;
 
     private static volatile AccessoriesPlugin instance;
 
     public static AccessoriesPlugin getInstance() {
         return instance;
+    }
+
+    public AccessoryStorage getStorage() {
+        return storage;
     }
 
     @Override
@@ -34,6 +41,23 @@ public class AccessoriesPlugin extends JavaPlugin {
         // Load slot configuration
         this.slotConfig = new SlotConfig();
         this.slotConfig.loadFromConfig(getConfig());
+
+        // Initialize storage backend
+        String storageType = getConfig().getString("storage.type", "pdc");
+        this.storage = AccessoryStorageFactory.create(storageType);
+        try {
+            this.storage.initialize(this, getConfig());
+            getLogger().info("Storage initialized: " + storage.getTypeName());
+        } catch (Exception e) {
+            getLogger().severe("Failed to initialize " + storageType + " storage: " + e.getMessage());
+            getLogger().warning("Falling back to PDC storage");
+            this.storage = AccessoryStorageFactory.createPdc();
+            try {
+                this.storage.initialize(this, getConfig());
+            } catch (Exception ex) {
+                getLogger().severe("PDC storage also failed: " + ex.getMessage());
+            }
+        }
 
         // Initialize API and GUI
         this.api = new AccessoriesApiImpl(this, slotConfig);
@@ -75,6 +99,9 @@ public class AccessoriesPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (storage != null) {
+            storage.shutdown();
+        }
         AccessoriesApiProvider.setApi(null);
         getServer().getServicesManager().unregister(AccessoriesApi.class, api);
         getLogger().info("MmoAccessories disabled!");

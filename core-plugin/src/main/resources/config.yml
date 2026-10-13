@@ -1,7 +1,25 @@
 # MC-MMO-Accessories Configuration
 
 # Do not change this version!
-config-version: 4
+config-version: 5
+
+# Storage backend for accessory data.
+# Options: pdc (default, player PersistentDataContainer), sqlite, mysql, mongodb
+storage:
+  type: pdc
+  sqlite:
+    file: "accessories.db"
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "minecraft"
+    username: "root"
+    password: ""
+    pool-size: 10
+  mongodb:
+    uri: "mongodb://localhost:27017"
+    database: "minecraft"
+    collection: "accessories"
 
 # Each slot type has:
 #   display-name: Display name shown in GUI

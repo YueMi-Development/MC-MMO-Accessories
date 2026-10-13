@@ -37,6 +37,12 @@ dependencies {
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
     compileOnly("org.yuemi:MmoItems-api:1.0.2")
     compileOnly("org.yuemi:MmoMechanics-api:1.3.3")
+
+    // Optional database storage backends
+    compileOnly("com.zaxxer:HikariCP:5.1.0")
+    compileOnly("com.mysql:mysql-connector-j:8.4.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.46.0.0")
+    compileOnly("org.mongodb:mongodb-driver-sync:5.1.0")
 }
 
 tasks.withType<JavaCompile>().configureEach {
