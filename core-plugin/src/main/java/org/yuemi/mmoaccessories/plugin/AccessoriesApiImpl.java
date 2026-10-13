@@ -206,14 +206,16 @@ public class AccessoriesApiImpl implements AccessoriesApi {
 
     private List<String> getMmoItemTypes(ItemStack item) {
         try {
+            // Get the MmoItemsApi from Bukkit's ServicesManager
             Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
-            Class<?> mmoItemsProviderClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
-            Object api = mmoItemsProviderClass.getMethod("getApi").invoke(null);
-            if (api != null) {
-                Object result = mmoItemsApiClass.getMethod("getItemTypes", ItemStack.class).invoke(api, item);
-                if (result instanceof java.util.List<?> list) {
-                    return (List<String>) list;
-                }
+            org.bukkit.plugin.RegisteredServiceProvider<?> reg =
+                    org.bukkit.Bukkit.getServer().getServicesManager().getRegistration(mmoItemsApiClass);
+            if (reg == null) return List.of();
+            Object api = reg.getProvider();
+            if (api == null) return List.of();
+            Object result = mmoItemsApiClass.getMethod("getItemTypes", ItemStack.class).invoke(api, item);
+            if (result instanceof java.util.List<?> list) {
+                return (List<String>) list;
             }
         } catch (Exception ignored) {}
         return List.of();
@@ -238,17 +240,21 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         if (id != null && !id.isEmpty()) {
             return id;
         }
-        // Fall back to MmoItems PDC if available (via reflection)
+        // Fall back to MmoItems PDC if available (via Bukkit ServicesManager)
         try {
-            Class<?> mmoItemsProviderClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
-            Object provider = mmoItemsProviderClass.getMethod("getApi").invoke(null);
-            if (provider == null) return null;
             Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
-            java.util.Optional<String> mmoId = (java.util.Optional<String>) mmoItemsApiClass
-                    .getMethod("getCustomItemId", ItemStack.class)
-                    .invoke(provider, item);
-            if (mmoId != null && mmoId.isPresent()) {
-                return mmoId.get();
+            org.bukkit.plugin.RegisteredServiceProvider<?> reg =
+                    org.bukkit.Bukkit.getServer().getServicesManager().getRegistration(mmoItemsApiClass);
+            if (reg != null) {
+                Object provider = reg.getProvider();
+                if (provider != null) {
+                    java.util.Optional<String> mmoId = (java.util.Optional<String>) mmoItemsApiClass
+                            .getMethod("getCustomItemId", ItemStack.class)
+                            .invoke(provider, item);
+                    if (mmoId != null && mmoId.isPresent()) {
+                        return mmoId.get();
+                    }
+                }
             }
         } catch (Exception ignored) {}
         // Final fallback: use material name
@@ -259,23 +265,26 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         if (itemId == null || itemId.isEmpty()) {
             return Optional.empty();
         }
-        
+
         try {
             Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
-            Class<?> mmoItemsProviderClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
-            Object api = mmoItemsProviderClass.getMethod("getApi").invoke(null);
-            if (api != null) {
-                ItemStack item = (ItemStack) mmoItemsApiClass.getMethod("createCustomItem", String.class)
-                        .invoke(api, itemId);
-                return Optional.ofNullable(item);
+            org.bukkit.plugin.RegisteredServiceProvider<?> reg =
+                    org.bukkit.Bukkit.getServer().getServicesManager().getRegistration(mmoItemsApiClass);
+            if (reg != null) {
+                Object provider = reg.getProvider();
+                if (provider != null) {
+                    ItemStack item = (ItemStack) mmoItemsApiClass.getMethod("createCustomItem", String.class)
+                            .invoke(provider, itemId);
+                    return Optional.ofNullable(item);
+                }
             }
         } catch (Exception ignored) {}
-        
+
         try {
             org.bukkit.Material material = org.bukkit.Material.valueOf(itemId.toUpperCase());
             return Optional.of(new ItemStack(material));
         } catch (Exception ignored) {}
-        
+
         return Optional.empty();
     }
 
