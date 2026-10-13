@@ -20,7 +20,6 @@ import java.util.Optional;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.yuemi.mmoitems.api.MmoItemsApi;
-import org.yuemi.mmoitems.api.MmoItemsApiProvider;
 
 public class AccessoriesApiImpl implements AccessoriesApi {
 
@@ -215,8 +214,9 @@ public class AccessoriesApiImpl implements AccessoriesApi {
      */
     private MmoItemsApi mmoItemsApi() {
         try {
-            MmoItemsApiProvider provider = Bukkit.getServicesManager().load(MmoItemsApiProvider.class);
-            return provider != null ? provider.getApi() : null;
+            // MmoItems registers its API directly under MmoItemsApi.class
+            // (not via MmoItemsApiProvider), so look it up by the API class.
+            return Bukkit.getServicesManager().load(MmoItemsApi.class);
         } catch (Throwable t) {
             return null;
         }

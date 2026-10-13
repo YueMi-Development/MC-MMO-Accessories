@@ -11,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.yuemi.mmomechanics.api.MmoMechanicsApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoitems.api.MmoItemsApi;
-import org.yuemi.mmoitems.api.MmoItemsApiProvider;
 import org.yuemi.mmoitems.api.item.ItemSkillConfig;
 
 import java.util.HashSet;
@@ -150,8 +149,9 @@ public class AccessoryInteractionListener implements Listener {
 
     private static MmoItemsApi resolveMmoItemsApi() {
         try {
-            MmoItemsApiProvider provider = Bukkit.getServicesManager().load(MmoItemsApiProvider.class);
-            return provider != null ? provider.getApi() : null;
+            // MmoItems registers its API directly under MmoItemsApi.class
+            // (not via MmoItemsApiProvider), so look it up by the API class.
+            return Bukkit.getServicesManager().load(MmoItemsApi.class);
         } catch (Throwable t) {
             return null;
         }
