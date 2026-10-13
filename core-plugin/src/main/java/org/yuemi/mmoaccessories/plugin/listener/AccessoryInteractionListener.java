@@ -1,100 +1,159 @@
 package org.yuemi.mmoaccessories.plugin.listener;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.yuemi.mmomechanics.api.MmoMechanicsApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
+import org.yuemi.mmoitems.api.MmoItemsApi;
+import org.yuemi.mmoitems.api.MmoItemsApiProvider;
+import org.yuemi.mmoitems.api.item.ItemSkillConfig;
 
-import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
  * Listens to player actions and fires mechanics from equipped accessories.
- * Accessories in GUI slots are treated as if they're in the player's hand.
+ *
+ * <p>Accessories in GUI slots are treated as if their skill bindings were present
+ * on an item the player is actively using: every Bukkit action that has a matching
+ * trigger fires the MmoMechanics skill declared on the accessory's MmoItems config.
+ *
+ * <p>Recursion guard prevents a skill's own damage from re-triggering itself.
  */
 public class AccessoryInteractionListener implements Listener {
 
     private final AccessoriesApi api;
     private final Logger logger;
-    private final Object mmoMechanicsApi;
+    private final MmoMechanicsApi mechanicsApi;
+    private final Supplier<MmoItemsApi> itemsApiSupplier;
+    private final Set<UUID> activeCasters = new HashSet<>();
+    private final AtomicReference<MmoItemsApi> lastItemsApi = new AtomicReference<>();
 
-    public AccessoryInteractionListener(AccessoriesApi api, Logger logger, Object mmoMechanicsApi) {
+    public AccessoryInteractionListener(AccessoriesApi api, Logger logger, MmoMechanicsApi mechanicsApi) {
+        this(api, logger, mechanicsApi, AccessoryInteractionListener::resolveMmoItemsApi);
+    }
+
+    /**
+     * Constructor used by tests to inject a stub {@link MmoItemsApi}.
+     */
+    AccessoryInteractionListener(
+            AccessoriesApi api,
+            Logger logger,
+            MmoMechanicsApi mechanicsApi,
+            Supplier<MmoItemsApi> itemsApiSupplier
+    ) {
         this.api = api;
         this.logger = logger;
-        this.mmoMechanicsApi = mmoMechanicsApi;
+        this.mechanicsApi = mechanicsApi;
+        this.itemsApiSupplier = itemsApiSupplier;
     }
 
-    @EventHandler
+    /** Returns the items API most recently used by the listener (test introspection). */
+    public MmoItemsApi getLastItemsApi() {
+        return lastItemsApi.get();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (api.isFeatureEnabled(player)) {
-            triggerMechanicsForAccessories(player, "onRightClick");
-        }
+        triggerForEvent(event.getPlayer(), "onRightClick");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player) {
-            if (api.isFeatureEnabled(player)) {
-                triggerMechanicsForAccessories(player, "onAttack");
-            }
+            triggerForEvent(player, "onAttack");
         }
     }
 
-    private void triggerMechanicsForAccessories(Player player, String trigger) {
-        if (mmoMechanicsApi == null) {
+    private void triggerForEvent(Player player, String trigger) {
+        if (mechanicsApi == null) {
             return;
         }
-        try {
-            Class<?> apiClass = mmoMechanicsApi.getClass();
-            Method getSkillExecutor = apiClass.getMethod("getSkillExecutor");
-            Object executor = getSkillExecutor.invoke(mmoMechanicsApi);
-            if (executor == null) {
-                return;
-            }
+        if (!api.isFeatureEnabled(player)) {
+            return;
+        }
+        UUID uuid = player.getUniqueId();
+        if (activeCasters.contains(uuid)) {
+            return;
+        }
+        if (!api.isAvailable()) {
+            return;
+        }
 
-            List<ItemStack> accessories = api.getAllEquipped(player);
+        List<ItemStack> accessories;
+        try {
+            accessories = api.getAllEquipped(player);
+        } catch (Exception e) {
+            logger.warning("Failed to read equipped accessories for " + player.getName() + ": " + e.getMessage());
+            return;
+        }
+        if (accessories == null || accessories.isEmpty()) {
+            return;
+        }
+
+        MmoItemsApi itemsApi = itemsApiSupplier.get();
+        lastItemsApi.set(itemsApi);
+        if (itemsApi == null) {
+            return;
+        }
+
+        activeCasters.add(uuid);
+        try {
             for (ItemStack item : accessories) {
                 if (item == null || !item.hasItemMeta()) continue;
-                fireItemMechanics(player, item, trigger);
+                if (!itemsApi.isCustomItem(item)) continue;
+
+                List<ItemSkillConfig> bindings;
+                try {
+                    bindings = itemsApi.getItemSkills(item);
+                } catch (Exception e) {
+                    continue;
+                }
+                if (bindings == null || bindings.isEmpty()) continue;
+
+                for (ItemSkillConfig binding : bindings) {
+                    if (binding == null || binding.skill() == null || binding.skill().isEmpty()) continue;
+                    String bindingTrigger = binding.trigger();
+                    if (bindingTrigger == null) {
+                        continue;
+                    }
+                    if (!bindingTrigger.equalsIgnoreCase(trigger)) continue;
+
+                    String skillId = binding.skill();
+                    try {
+                        mechanicsApi.castSkill(uuid, skillId);
+                    } catch (Exception e) {
+                        logger.warning("Failed to cast skill '" + skillId + "' for " + player.getName() + ": " + e.getMessage());
+                    }
+                }
             }
-        } catch (Exception e) {
-            logger.warning("Failed to fire mechanics: " + e.getMessage());
+        } finally {
+            activeCasters.remove(uuid);
         }
     }
 
-    private void fireItemMechanics(Player player, ItemStack item, String trigger) {
+    public static AccessoryInteractionListener create(AccessoriesApi api, Logger logger) {
+        MmoMechanicsApi mechanicsApi = Bukkit.getServicesManager().load(MmoMechanicsApi.class);
+        return new AccessoryInteractionListener(api, logger, mechanicsApi);
+    }
+
+    private static MmoItemsApi resolveMmoItemsApi() {
         try {
-            Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
-            Class<?> providerClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
-            Object mmoItemsApi = providerClass.getMethod("getApi").invoke(null);
-            if (mmoItemsApi == null) {
-                return;
-            }
-
-            Boolean isCustom = (Boolean) mmoItemsApiClass.getMethod("isCustomItem", ItemStack.class)
-                    .invoke(mmoItemsApi, item);
-            if (isCustom == null || !isCustom) {
-                return;
-            }
-
-            String itemId = (String) mmoItemsApiClass.getMethod("getCustomItemId", ItemStack.class)
-                    .invoke(mmoItemsApi, item);
-            if (itemId == null || itemId.isEmpty()) {
-                return;
-            }
-
-            // Skills are bound to the item via MmoItems config
-            // Each skill has triggers, targeters, and mechanics
-            // Mechanics with matching trigger are executed via SkillExecutor
-            // The source_item context variable is set so conditions like
-            // "isequippedasaccessory" can verify the item's accessory state
-        } catch (Exception e) {
-            // Silently ignore - items not bound or MmoItems unavailable
+            MmoItemsApiProvider provider = Bukkit.getServicesManager().load(MmoItemsApiProvider.class);
+            return provider != null ? provider.getApi() : null;
+        } catch (Throwable t) {
+            return null;
         }
     }
 }

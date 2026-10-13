@@ -75,7 +75,10 @@ public final class AccessoriesGui {
         // Rebuild mappings in case config was reloaded
         buildSlotMappings();
 
-        var gui = guiApi.createBuilder()
+        // Register accessory slot positions as input slots on the GUI instance so
+        // the click handler treats a cursor-item drop into a placeholder as PLACE
+        // (not SWAP). Without this, filled placeholders block placing items.
+        var builder = guiApi.createBuilder()
                 .title(guiConfig.getTitle())
                 .rows(guiConfig.getRows())
                 .createLayer("background", 0, layer -> {
@@ -86,28 +89,12 @@ public final class AccessoriesGui {
                 .createLayer("slots", 1, layer -> buildSlotLayer(player, layer))
                 .createLayer("actions", 2, layer -> buildActionLayer(player, layer))
                 .closePolicy(org.yuemi.libs.api.gui.ClosePolicy.CLOSE)
-                .onClose(p -> {})
-                .build();
+                .onClose(p -> {});
+        var gui = builder.build();
 
-        // Register all accessory slot positions as "input slots" so the GUI
-        // listener knows items can be placed into them (vs swapping with existing items).
-        registerInputSlots(slotMappings.keySet());
+        gui.registerInputSlots(slotMappings.keySet());
 
         gui.open(player);
-    }
-
-    /**
-     * Register slot positions as input slots via reflection (avoids hard dependency
-     * on internal YueMiLibs implementation class).
-     */
-    private static void registerInputSlots(java.util.Set<Integer> positions) {
-        try {
-            Class<?> apiClass = Class.forName("org.yuemi.libs.plugin.gui.GuiApiImpl");
-            java.lang.reflect.Method method = apiClass.getMethod("registerInputSlots", java.util.Collection.class);
-            method.invoke(null, positions);
-        } catch (Exception e) {
-            // Silently fail if YueMiLibs version doesn't support this
-        }
     }
 
     private ItemStack fetchVanilla(String key) {
@@ -132,6 +119,7 @@ public final class AccessoriesGui {
                     }
                     return item;
                 })
+                .behavior(SlotBehavior.NONE)
                 .build();
     }
 

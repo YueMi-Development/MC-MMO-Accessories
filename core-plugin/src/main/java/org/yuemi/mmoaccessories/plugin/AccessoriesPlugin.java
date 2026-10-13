@@ -3,6 +3,7 @@ package org.yuemi.mmoaccessories.plugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.yuemi.mmomechanics.api.MmoMechanicsApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.api.storage.AccessoryStorage;
@@ -83,10 +84,10 @@ public class AccessoriesPlugin extends JavaPlugin {
         }
 
         // Register interaction listener
-        Object mmoMechanicsApi = getMmoMechanicsApi();
-        if (mmoMechanicsApi != null) {
+        MmoMechanicsApi mechanicsApi = Bukkit.getServicesManager().load(MmoMechanicsApi.class);
+        if (mechanicsApi != null) {
             getServer().getPluginManager().registerEvents(
-                new AccessoryInteractionListener(api, getLogger(), mmoMechanicsApi),
+                new AccessoryInteractionListener(api, getLogger(), mechanicsApi),
                 this
             );
             getLogger().info("Hooked into MmoMechanics for accessory skill triggering!");
@@ -117,18 +118,5 @@ public class AccessoriesPlugin extends JavaPlugin {
 
     public AccessoriesGui getGui() {
         return gui;
-    }
-
-    private Object getMmoMechanicsApi() {
-        try {
-            Class<?> providerClass = Class.forName("org.yuemi.mmomechanics.api.MmoMechanicsApiProvider");
-            Object provider = providerClass.getMethod("getApi").invoke(null);
-            if (provider == null) {
-                return null;
-            }
-            return providerClass.getMethod("getApi").invoke(provider);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }
