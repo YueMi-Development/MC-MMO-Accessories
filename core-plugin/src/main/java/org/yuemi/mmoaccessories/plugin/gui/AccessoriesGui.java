@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.yuemi.libs.api.gui.GuiApi;
 import org.yuemi.libs.api.gui.GuiItem;
 import org.yuemi.libs.api.gui.GuiProvider;
+import org.yuemi.libs.api.gui.SlotBehavior;
 import org.yuemi.mmoaccessories.api.AccessorySlot;
 import org.yuemi.mmoaccessories.api.AccessorySlotGui;
 import org.yuemi.mmoaccessories.api.AccessorySlotId;
@@ -74,7 +75,7 @@ public final class AccessoriesGui {
         // Rebuild mappings in case config was reloaded
         buildSlotMappings();
 
-        guiApi.createBuilder()
+        var gui = guiApi.createBuilder()
                 .title(guiConfig.getTitle())
                 .rows(guiConfig.getRows())
                 .createLayer("background", 0, layer -> {
@@ -86,8 +87,27 @@ public final class AccessoriesGui {
                 .createLayer("actions", 2, layer -> buildActionLayer(player, layer))
                 .closePolicy(org.yuemi.libs.api.gui.ClosePolicy.CLOSE)
                 .onClose(p -> {})
-                .build()
-                .open(player);
+                .build();
+
+        // Register all accessory slot positions as "input slots" so the GUI
+        // listener knows items can be placed into them (vs swapping with existing items).
+        registerInputSlots(slotMappings.keySet());
+
+        gui.open(player);
+    }
+
+    /**
+     * Register slot positions as input slots via reflection (avoids hard dependency
+     * on internal YueMiLibs implementation class).
+     */
+    private static void registerInputSlots(java.util.Set<Integer> positions) {
+        try {
+            Class<?> apiClass = Class.forName("org.yuemi.libs.plugin.gui.GuiApiImpl");
+            java.lang.reflect.Method method = apiClass.getMethod("registerInputSlots", java.util.Collection.class);
+            method.invoke(null, positions);
+        } catch (Exception e) {
+            // Silently fail if YueMiLibs version doesn't support this
+        }
     }
 
     private ItemStack fetchVanilla(String key) {
@@ -155,26 +175,58 @@ public final class AccessoriesGui {
         AccessorySlotGui slotGui = def.gui();
 
         if (content != null) {
+            // Filled slot - allow pickup only (output)
             return GuiItem.builder()
                     .item(p -> annotateEquipped(content, def))
-                    .onClick((p, ctx) -> {
-                        // Click to unequip
-                        api.unequipAccessory(p, slot, slotIndex);
-                        if (p.getInventory().firstEmpty() != -1) {
-                            p.getInventory().addItem(content);
-                        } else {
-                            p.getWorld().dropItemNaturally(p.getLocation(), content);
-                        }
-                        api.sendMessage(p, "<green>Unequipped!");
-                    })
+                    .behavior(SlotBehavior.output())
+                    .onClick((p, ctx) -> handleSlotClick(p, ctx, slot, slotIndex, content, true))
                     .build();
         } else {
+            // Empty slot - allow place from inventory (input)
             return GuiItem.builder()
                     .item(p -> createEmptySlotItemStack(def, slotGui))
-                    .onClick((p, ctx) -> {
-                        // Empty slot click does nothing - drag items to equip
-                    })
+                    .behavior(SlotBehavior.input())
+                    .onClick((p, ctx) -> handleSlotClick(p, ctx, slot, slotIndex, null, false))
                     .build();
+        }
+    }
+
+    /**
+     * Handle slot interaction based on the action type.
+     * - For empty slots: PLACE / DRAG_PLACE / SHIFT_CLICK → equip from cursor
+     * - For filled slots: PICKUP / SWAP → unequip to inventory
+     */
+    private void handleSlotClick(Player player, org.yuemi.libs.api.gui.GuiClickContext ctx,
+                                 AccessorySlot slot, int slotIndex, ItemStack currentItem, boolean isFilled) {
+        if (isFilled) {
+            // Pickup flow: item moves to cursor naturally (PICKUP action)
+            // For SWAP/MOVE actions, we need to handle manually
+            if (currentItem == null) return;
+            if (api.unequipAccessory(player, slot, slotIndex)) {
+                // The item was already moved to cursor by the GUI system
+                api.sendMessage(player, "<green>Unequipped!");
+            }
+        } else {
+            // Empty slot - try to equip from cursor
+            ItemStack cursor = ctx.getInteractedItem();
+            if (cursor == null || cursor.getType() == Material.AIR) {
+                api.sendMessage(player, "<red>Hold an item in your cursor or drag an item to equip!");
+                return;
+            }
+            if (!api.canEquipToSlot(cursor, slot)) {
+                api.sendMessage(player, "<red>This item cannot be equipped to " + slot.name() + "!");
+                return;
+            }
+            if (api.equipAccessory(player, slot, slotIndex, cursor.clone())) {
+                // Reduce cursor by 1 (we cloned the item to equip it)
+                cursor.setAmount(cursor.getAmount() - 1);
+                if (cursor.getAmount() <= 0) {
+                    player.setItemOnCursor(null);
+                }
+                api.sendMessage(player, "<green>Equipped to " + slot.name() + "!");
+            } else {
+                api.sendMessage(player, "<red>Failed to equip item!");
+            }
         }
     }
 

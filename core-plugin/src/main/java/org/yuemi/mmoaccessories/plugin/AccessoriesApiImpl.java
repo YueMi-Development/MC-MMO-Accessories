@@ -134,8 +134,12 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         }
 
         List<String> itemTypes = getMmoItemTypes(item);
+        // If MmoItems is not installed or item has no types, allow fallback
+        // (e.g., when item is a vanilla item, fall back to material name)
         if (itemTypes.isEmpty()) {
-            return false;
+            // Fallback: check if item material name matches any accepted type
+            String materialName = item.getType().name();
+            return accepted.stream().anyMatch(t -> t.equalsIgnoreCase(materialName));
         }
 
         return itemTypes.stream().anyMatch(accepted::contains);
@@ -228,10 +232,26 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         if (item == null || !item.hasItemMeta()) {
             return null;
         }
-        String id = item.getItemMeta().getPersistentDataContainer().get(itemIdKey, PersistentDataType.STRING);
+        // First check our own PDC
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        String id = pdc.get(itemIdKey, PersistentDataType.STRING);
         if (id != null && !id.isEmpty()) {
             return id;
         }
+        // Fall back to MmoItems PDC if available (via reflection)
+        try {
+            Class<?> mmoItemsProviderClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApiProvider");
+            Object provider = mmoItemsProviderClass.getMethod("getApi").invoke(null);
+            if (provider == null) return null;
+            Class<?> mmoItemsApiClass = Class.forName("org.yuemi.mmoitems.api.MmoItemsApi");
+            java.util.Optional<String> mmoId = (java.util.Optional<String>) mmoItemsApiClass
+                    .getMethod("getCustomItemId", ItemStack.class)
+                    .invoke(provider, item);
+            if (mmoId != null && mmoId.isPresent()) {
+                return mmoId.get();
+            }
+        } catch (Exception ignored) {}
+        // Final fallback: use material name
         return item.getType().name().toLowerCase();
     }
 

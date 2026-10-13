@@ -8,7 +8,6 @@ import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.plugin.command.AccessoriesCommand;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
-import org.yuemi.mmoaccessories.plugin.listener.AccessoryDragListener;
 import org.yuemi.mmoaccessories.plugin.listener.AccessoryInteractionListener;
 
 public class AccessoriesPlugin extends JavaPlugin {
@@ -62,14 +61,6 @@ public class AccessoriesPlugin extends JavaPlugin {
             getLogger().info("Hooked into MmoMechanics for accessory skill triggering!");
         } else {
             getLogger().info("MmoMechanics not available - accessory mechanics disabled.");
-        }
-
-        // Register drag-and-drop listener for GUI
-        if (gui != null) {
-            getServer().getPluginManager().registerEvents(
-                new AccessoryDragListener(api, gui),
-                this
-            );
         }
 
         getLogger().info("MmoAccessories enabled!");
