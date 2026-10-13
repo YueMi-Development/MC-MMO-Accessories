@@ -1,0 +1,21 @@
+name: '${pluginName}'
+version: '${version}'
+main: org.yuemi.mmoaccessories.plugin.AccessoriesPlugin
+api-version: '${apiVersion}'
+authors: [${authors}]
+contributors: [${contributors}']
+
+dependencies:
+  server:
+    YueMiLibs:
+      load: BEFORE
+      required: true
+      join-classpath: false
+    MmoItems:
+      load: BEFORE
+      required: true
+      join-classpath: false
+    MmoMechanics:
+      load: BEFORE
+      required: true
+      join-classpath: false
