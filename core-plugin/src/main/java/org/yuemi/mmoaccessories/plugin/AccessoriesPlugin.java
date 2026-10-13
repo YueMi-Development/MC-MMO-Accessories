@@ -16,8 +16,15 @@ public class AccessoriesPlugin extends JavaPlugin {
     private AccessoriesApiImpl api;
     private AccessoriesGui gui;
 
+    private static volatile AccessoriesPlugin instance;
+
+    public static AccessoriesPlugin getInstance() {
+        return instance;
+    }
+
     @Override
     public void onEnable() {
+        instance = this;
         saveDefaultConfig();
 
         // Check and migrate config

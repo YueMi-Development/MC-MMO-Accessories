@@ -198,6 +198,7 @@ public final class AccessoriesGui {
      */
     private void handleSlotClick(Player player, org.yuemi.libs.api.gui.GuiClickContext ctx,
                                  AccessorySlot slot, int slotIndex, ItemStack currentItem, boolean isFilled) {
+        boolean changed = false;
         if (isFilled) {
             // Pickup flow: item moves to cursor naturally (PICKUP action)
             // For SWAP/MOVE actions, we need to handle manually
@@ -205,6 +206,7 @@ public final class AccessoriesGui {
             if (api.unequipAccessory(player, slot, slotIndex)) {
                 // The item was already moved to cursor by the GUI system
                 api.sendMessage(player, "<green>Unequipped!");
+                changed = true;
             }
         } else {
             // Empty slot - try to equip from cursor
@@ -224,10 +226,33 @@ public final class AccessoriesGui {
                     player.setItemOnCursor(null);
                 }
                 api.sendMessage(player, "<green>Equipped to " + slot.name() + "!");
+                changed = true;
             } else {
                 api.sendMessage(player, "<red>Failed to equip item!");
             }
         }
+
+        // Refresh the GUI to show the new state of slots
+        if (changed) {
+            refreshGui(player);
+        }
+    }
+
+    /**
+     * Refresh the GUI for the player by re-rendering all slots.
+     * This is needed because the GUI caches the slot items at open time,
+     * so after equip/unequip we need to re-populate.
+     */
+    private void refreshGui(Player player) {
+        // Use Bukkit task to defer the refresh to next tick,
+        // avoiding modifying inventory during click event processing
+        org.bukkit.Bukkit.getScheduler().runTask(
+                org.yuemi.mmoaccessories.plugin.AccessoriesPlugin.getInstance(),
+                () -> {
+                    // Force re-open the GUI with fresh state
+                    open(player);
+                }
+        );
     }
 
     private ItemStack annotateEquipped(ItemStack content, SlotDefinition def) {
