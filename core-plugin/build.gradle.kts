@@ -36,7 +36,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
     compileOnly("org.yuemi:MmoItems-api:1.0.3")
-    compileOnly("org.yuemi:MmoMechanics-api:1.3.3")
+    compileOnly("org.yuemi:MmoMechanics-api:1.4.0")
 
     // Optional database storage backends
     compileOnly("com.zaxxer:HikariCP:5.1.0")

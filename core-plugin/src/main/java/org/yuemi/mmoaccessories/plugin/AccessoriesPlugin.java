@@ -86,10 +86,8 @@ public class AccessoriesPlugin extends JavaPlugin {
         // Register interaction listener
         MmoMechanicsApi mechanicsApi = Bukkit.getServicesManager().load(MmoMechanicsApi.class);
         if (mechanicsApi != null) {
-            getServer().getPluginManager().registerEvents(
-                new AccessoryInteractionListener(api, getLogger(), mechanicsApi),
-                this
-            );
+            AccessoryInteractionListener listener = new AccessoryInteractionListener(api, getLogger(), mechanicsApi);
+            listener.register();
             getLogger().info("Hooked into MmoMechanics for accessory skill triggering!");
         } else {
             getLogger().info("MmoMechanics not available - accessory mechanics disabled.");

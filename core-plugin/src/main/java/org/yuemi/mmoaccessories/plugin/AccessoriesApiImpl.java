@@ -13,12 +13,10 @@ import org.yuemi.mmoaccessories.api.storage.AccessoryStorage;
 import org.yuemi.mmoaccessories.plugin.config.GuiConfig;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
-import org.yuemi.mmoitems.api.item.ItemSkillConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -77,8 +75,10 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         accessories.set(arrayIndex, itemId);
         saveAccessories(player, accessories);
 
-        // Fire onEquip triggers on the item (if MmoMechanics is loaded).
-        fireEquipTriggers(player, item, "onEquip");
+        // Dispatch the onEquip trigger through MmoMechanics' trigger system.
+        // Skills declare triggers = ["onEquip"] in their JSON5; TriggerManager
+        // handles which skills fire and which conditions pass.
+        fireTrigger(player.getUniqueId(), "onEquip");
 
         return true;
     }
@@ -94,16 +94,10 @@ public class AccessoriesApiImpl implements AccessoriesApi {
         int arrayIndex = getSlotOffset(slot) + slotIndex;
 
         if (arrayIndex < accessories.size()) {
-            String previousId = accessories.get(arrayIndex);
             accessories.set(arrayIndex, "");
             saveAccessories(player, accessories);
-            // Fire onUnequip triggers using the previously-equipped item (best-effort).
-            if (previousId != null && !previousId.isEmpty()) {
-                ItemStack previous = createItemFromId(previousId).orElse(null);
-                if (previous != null) {
-                    fireEquipTriggers(player, previous, "onUnequip");
-                }
-            }
+            // Dispatch the onUnequip trigger through MmoMechanics' trigger system.
+            fireTrigger(player.getUniqueId(), "onUnequip");
         }
         return true;
     }
@@ -319,13 +313,11 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     }
 
     /**
-     * Fires the given trigger id for each skill binding on the item whose
-     * trigger matches. Skips silently if MmoItems or MmoMechanics aren't loaded.
+     * Dispatches the given trigger on the player through MmoMechanics' trigger
+     * system. The trigger system looks up skills bound to the player whose
+     * JSON5 {@code triggers[]} includes {@code triggerId} and runs them.
      */
-    private void fireEquipTriggers(Player player, ItemStack item, String triggerId) {
-        if (item == null || !item.hasItemMeta()) return;
-        MmoItemsApi itemsApi = mmoItemsApi();
-        if (itemsApi == null) return;
+    private void fireTrigger(java.util.UUID playerUuid, String triggerId) {
         MmoMechanicsApi mechanicsApi;
         try {
             mechanicsApi = Bukkit.getServicesManager().load(MmoMechanicsApi.class);
@@ -333,26 +325,11 @@ public class AccessoriesApiImpl implements AccessoriesApi {
             return;
         }
         if (mechanicsApi == null) return;
-
-        List<ItemSkillConfig> bindings;
         try {
-            bindings = itemsApi.getItemSkills(item);
+            mechanicsApi.fireTrigger(playerUuid, triggerId);
         } catch (Exception e) {
-            return;
-        }
-        if (bindings == null || bindings.isEmpty()) return;
-
-        UUID uuid = player.getUniqueId();
-        for (ItemSkillConfig binding : bindings) {
-            if (binding == null || binding.skill() == null || binding.skill().isEmpty()) continue;
-            if (binding.trigger() == null) continue;
-            if (!binding.trigger().equalsIgnoreCase(triggerId)) continue;
-            try {
-                mechanicsApi.castSkill(uuid, binding.skill());
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to cast " + triggerId + " skill '"
-                        + binding.skill() + "' for " + player.getName() + ": " + e.getMessage());
-            }
+            plugin.getLogger().warning("Failed to fire " + triggerId + " trigger for "
+                    + playerUuid + ": " + e.getMessage());
         }
     }
 }
