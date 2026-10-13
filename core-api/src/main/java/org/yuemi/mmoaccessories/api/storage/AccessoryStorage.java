@@ -20,8 +20,10 @@ import java.util.UUID;
  *
  * <p>Shipped backends: {@code pdc} (default), {@code sqlite}, {@code mysql},
  * {@code mongodb}. Add a new backend by implementing this interface and
- * registering it through
- * {@link AccessoryStorageFactory#register(String, java.util.function.Supplier)}.
+ * resolving it through
+ * {@link AccessoryStorageFactory#create(String)} (or wiring a new case
+ * onto {@code AccessoryStorageFactory.create}, and registering the
+ * implementation in your build).
  */
 public interface AccessoryStorage {
 
