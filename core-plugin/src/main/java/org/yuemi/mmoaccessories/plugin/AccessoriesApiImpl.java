@@ -4,6 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.yuemi.mmomechanics.api.MmoMechanicsApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApi;
 import org.yuemi.mmoaccessories.api.AccessoriesApiProvider;
 import org.yuemi.mmoaccessories.api.AccessorySlot;
@@ -12,10 +13,12 @@ import org.yuemi.mmoaccessories.api.storage.AccessoryStorage;
 import org.yuemi.mmoaccessories.plugin.config.GuiConfig;
 import org.yuemi.mmoaccessories.plugin.config.SlotConfig;
 import org.yuemi.mmoaccessories.plugin.gui.AccessoriesGui;
+import org.yuemi.mmoitems.api.item.ItemSkillConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -62,17 +65,21 @@ public class AccessoriesApiImpl implements AccessoriesApi {
 
         List<String> accessories = getAccessoriesList(player);
         int arrayIndex = getSlotOffset(slot) + slotIndex;
-        
+
         String itemId = getItemId(item);
         if (itemId == null) {
             return false;
         }
-        
+
         while (accessories.size() <= arrayIndex) {
             accessories.add("");
         }
         accessories.set(arrayIndex, itemId);
         saveAccessories(player, accessories);
+
+        // Fire onEquip triggers on the item (if MmoMechanics is loaded).
+        fireEquipTriggers(player, item, "onEquip");
+
         return true;
     }
 
@@ -85,10 +92,18 @@ public class AccessoriesApiImpl implements AccessoriesApi {
 
         List<String> accessories = getAccessoriesList(player);
         int arrayIndex = getSlotOffset(slot) + slotIndex;
-        
+
         if (arrayIndex < accessories.size()) {
+            String previousId = accessories.get(arrayIndex);
             accessories.set(arrayIndex, "");
             saveAccessories(player, accessories);
+            // Fire onUnequip triggers using the previously-equipped item (best-effort).
+            if (previousId != null && !previousId.isEmpty()) {
+                ItemStack previous = createItemFromId(previousId).orElse(null);
+                if (previous != null) {
+                    fireEquipTriggers(player, previous, "onUnequip");
+                }
+            }
         }
         return true;
     }
@@ -301,5 +316,43 @@ public class AccessoriesApiImpl implements AccessoriesApi {
     private void saveAccessories(Player player, List<String> accessories) {
         if (storage == null) return;
         storage.saveAccessories(player.getUniqueId(), accessories);
+    }
+
+    /**
+     * Fires the given trigger id for each skill binding on the item whose
+     * trigger matches. Skips silently if MmoItems or MmoMechanics aren't loaded.
+     */
+    private void fireEquipTriggers(Player player, ItemStack item, String triggerId) {
+        if (item == null || !item.hasItemMeta()) return;
+        MmoItemsApi itemsApi = mmoItemsApi();
+        if (itemsApi == null) return;
+        MmoMechanicsApi mechanicsApi;
+        try {
+            mechanicsApi = Bukkit.getServicesManager().load(MmoMechanicsApi.class);
+        } catch (Throwable t) {
+            return;
+        }
+        if (mechanicsApi == null) return;
+
+        List<ItemSkillConfig> bindings;
+        try {
+            bindings = itemsApi.getItemSkills(item);
+        } catch (Exception e) {
+            return;
+        }
+        if (bindings == null || bindings.isEmpty()) return;
+
+        UUID uuid = player.getUniqueId();
+        for (ItemSkillConfig binding : bindings) {
+            if (binding == null || binding.skill() == null || binding.skill().isEmpty()) continue;
+            if (binding.trigger() == null) continue;
+            if (!binding.trigger().equalsIgnoreCase(triggerId)) continue;
+            try {
+                mechanicsApi.castSkill(uuid, binding.skill());
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to cast " + triggerId + " skill '"
+                        + binding.skill() + "' for " + player.getName() + ": " + e.getMessage());
+            }
+        }
     }
 }
