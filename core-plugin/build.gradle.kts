@@ -15,12 +15,14 @@ val yuemiLibsApiVersion: String by project
 val pluginVersion: String = project.version.toString()
 
 tasks.processResources {
+    val bstatsPluginId = project.findProperty("bstatsPluginId") as? String ?: ""
     val props = mapOf(
         "pluginName" to pluginName,
         "version" to pluginVersion,
         "apiVersion" to apiVersion,
         "authors" to authors,
-        "contributors" to contributors
+        "contributors" to contributors,
+        "bstatsPluginId" to bstatsPluginId
     )
     inputs.properties(props)
     filteringCharset = "UTF-8"
@@ -33,6 +35,7 @@ tasks.processResources {
 dependencies {
     implementation(project(":core-api"))
     implementation("org.yuemi:mc-config-libs:1.0.1")
+    implementation("org.bstats:bstats-bukkit:3.2.1")
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
     compileOnly("org.yuemi:YueMiLibs-api:$yuemiLibsApiVersion")
     compileOnly("org.yuemi:MmoItems-api:1.0.3")
@@ -58,6 +61,9 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
     archiveVersion.set(pluginVersion)
     archiveClassifier.set("")
 
+    configurations = listOf(project.configurations.runtimeClasspath.get())
+
+    relocate("org.bstats", "${project.group}.plugin.bstats")
     relocate("org.yuemi.config", "${project.group}.libs.config")
 
     manifest {

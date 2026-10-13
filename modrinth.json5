@@ -17,12 +17,12 @@
   "dependencies": [
     {
       "projectId": "rZNwNOoR", // YueMiLibs
-      "versionId": "IujLCgG5", // v2.3.1
+      "versionId": "rhxcwVnF", // v2.3.12
       "dependencyType": "required"
     },
     {
       "projectId": "R8PzhBth", // MMO Mechanics
-      "versionId": "ScKQbzor", // v1.3.3
+      "versionId": "QcHzEtO2", // v1.4.0
       "dependencyType": "required"
     }
   ]

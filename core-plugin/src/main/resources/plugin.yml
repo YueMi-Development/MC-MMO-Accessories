@@ -9,6 +9,7 @@ softdepend: [
   MmoItems,
   MmoMechanics
 ]
+bstats-id: '${bstatsPluginId}'
 commands:
   accessories:
     description: Main command for MC-MMO-Accessories

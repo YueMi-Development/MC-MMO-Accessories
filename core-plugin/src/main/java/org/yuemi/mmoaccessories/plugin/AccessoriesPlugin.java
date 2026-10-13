@@ -94,6 +94,7 @@ public class AccessoriesPlugin extends JavaPlugin {
         }
 
         getLogger().info("MmoAccessories enabled!");
+        org.yuemi.mmoaccessories.plugin.bstats.BStatsService.initialize(this);
     }
 
     @Override
