@@ -1,1 +1,1 @@
-tagSearchIndex = [];updateSearchResults();
+tagSearchIndex = [{"l":"Built-in types","h":"class org.yuemi.mmoaccessories.api.storage.AccessoryStorageFactory","d":"Section","u":"org/yuemi/mmoaccessories/api/storage/AccessoryStorageFactory.html#built-in-types-heading"},{"l":"Custom backends","h":"class org.yuemi.mmoaccessories.api.storage.AccessoryStorageFactory","d":"Section","u":"org/yuemi/mmoaccessories/api/storage/AccessoryStorageFactory.html#custom-backends-heading"}];updateSearchResults();
