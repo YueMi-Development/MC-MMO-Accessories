@@ -232,14 +232,12 @@ public final class AccessoriesGui {
      * so after equip/unequip we need to re-populate.
      */
     private void refreshGui(Player player) {
-        // Use Bukkit task to defer the refresh to next tick,
+        // Defer the refresh to the player's own region thread,
         // avoiding modifying inventory during click event processing
-        org.bukkit.Bukkit.getScheduler().runTask(
+        org.yuemi.libs.api.folia.FoliaSchedulers.executeEntity(
                 org.yuemi.mmoaccessories.plugin.AccessoriesPlugin.getInstance(),
-                () -> {
-                    // Force re-open the GUI with fresh state
-                    open(player);
-                }
+                player,
+                () -> open(player)
         );
     }
 
