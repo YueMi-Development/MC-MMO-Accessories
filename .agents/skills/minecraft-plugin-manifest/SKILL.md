@@ -1,9 +1,16 @@
 ---
 name: minecraft-plugin-manifest
-description: Master plugin metadata configuration for Bukkit, Spigot, and Paper servers. Covers plugin.yml and paper-plugin.yml file structures, dependency management, permission systems, command registration, and modern Paper features like bootstrappers and plugin loaders. Use PROACTIVELY for plugin setup, dependency resolution, load order issues, permission design, and cross-version compatibility.
+description: |
+  Master plugin metadata configuration for Bukkit, Spigot, and Paper servers.
+  Covers plugin.yml and paper-plugin.yml file structures, dependency management,
+  permission systems, command registration, modern Paper features like bootstrappers
+  and plugin loaders, and Folia server compatibility via the `folia-supported` flag.
+
+  Use PROACTIVELY for plugin setup, dependency resolution, load order issues,
+  permission design, and cross-version compatibility.
 metadata:
   scope: plugin-configuration
-  targets: [plugin.yml, paper-plugin.yml, dependency-management, permissions]
+  targets: [plugin.yml, paper-plugin.yml, dependency-management, permissions, folia-supported]
 ---
 
 ## Use this skill when
@@ -12,6 +19,7 @@ metadata:
 - Resolving dependency conflicts or load order issues
 - Designing permission hierarchies and command structure
 - Handling Paper-specific features (bootstrappers, loaders, classloading)
+- Adding `folia-supported: true` to enable a plugin on Folia servers
 - Migrating from Bukkit plugins to modern Paper plugins
 - Troubleshooting "plugin failed to load" errors
 - Implementing permission systems and command registration
@@ -48,6 +56,7 @@ You are an expert in Minecraft plugin metadata, dependency management, and confi
 - Library management and dependency shading
 - Cross-version API compatibility declaration
 - Legacy plugin detection and modern best practices
+- **Folia support**: `folia-supported: true` / `folia-supported: false`
 
 ### paper-plugin.yml (Paper Experimental)
 - Modern plugin descriptor with bootstrappers and loaders
@@ -58,6 +67,7 @@ You are an expert in Minecraft plugin metadata, dependency management, and confi
 - Cyclic load order detection and resolution
 - Brigadier command API integration
 - Custom serialization registration
+- **Folia support**: `folia-supported: true` / `folia-supported: false`
 
 ### Dependency Management
 - Hard vs optional dependency decisions
@@ -143,6 +153,9 @@ author: AuthorName
 website: https://github.com/example/plugin
 api-version: '1.21.1'
 
+# Folia support (omit or set false to remain Paper-only)
+folia-supported: true
+
 # Lifecycle
 load: STARTUP  # or POSTWORLD (default)
 
@@ -183,6 +196,9 @@ main: com.example.plugin.ModernPlugin
 api-version: '26.1.2'
 bootstrapper: com.example.plugin.Bootstrapper
 loader: com.example.plugin.Loader
+
+# Folia support (omit or set false to remain Paper-only)
+folia-supported: true
 
 # Dependencies (two-part: bootstrap + server)
 dependencies:
@@ -248,6 +264,13 @@ dependencies:
 4. ✅ Confirm PluginLoader is properly implemented
 5. ✅ Check Maven library resolver points to Paper mirror (not Maven Central)
 
+### Folia Compatibility Issues
+1. ✅ Add `folia-supported: true` to `plugin.yml` or `paper-plugin.yml`
+2. ✅ Omit the field entirely to remain Paper-only (Folia won't load it)
+3. ✅ Set `folia-supported: false` explicitly to declare non-support
+4. ✅ Use the correct scheduler type (global, region, async, entity) — see the Folia skill
+5. ✅ Test on Folia before declaring support; schedulers are mandatory on Folia
+
 ---
 
 ## Key Takeaways
@@ -290,4 +313,13 @@ dependencies:
 ❌ Don't hard-depend on plugins without good reason
 ❌ Don't skip documentation for your permission model
 ❌ Don't ignore dependency management complexity
+
+### Folia Support (`folia-supported`)
+✅ Set `folia-supported: true` to enable the plugin on Folia servers
+✅ Omit the field entirely to remain Paper-only (Folia ignores plugins without it)
+✅ Set `folia-supported: false` to explicitly declare no Folia support
+✅ When adding Folia support, also use the correct scheduler types (see Folia skill)
+
+❌ Don't set `folia-supported: true` without using the correct scheduler types — tasks will fail at runtime on Folia
+❌ Don't assume a plugin without this field works on Folia — it will be silently ignored
 

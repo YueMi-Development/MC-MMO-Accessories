@@ -51,16 +51,28 @@
       "skillPath": "skills/java-performance/SKILL.md",
       "computedHash": "e24625f8183d1615bcca5185796e943aecf84ce099b2683f4c7e40f92c9fdb01"
     },
+    "minecraft-bstats": {
+      "source": "YueMi-Development/minecraft-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/bstats/SKILL.md",
+      "computedHash": "fabd22919b2cb514cc13a9f1212b078b1969f9ecdd908dd6db61857286436ce0"
+    },
     "minecraft-bukkit-pro": {
       "source": "rmyndharis/antigravity-skills",
       "sourceType": "github",
       "computedHash": "9554042e1d088893e73554e0e44cd8e2251aede92f27810f0cb72e6c89e9a85a"
     },
+    "minecraft-paper-folia-plugin": {
+      "source": "YueMi-Development/minecraft-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/minecraft-paper-folia-plugin/SKILL.md",
+      "computedHash": "28a3f9d803898090c83b65ba8e0949b3349bed95373936532ad65e22da11faf8"
+    },
     "minecraft-plugin-manifest": {
       "source": "YueMi-Development/minecraft-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/minecraft-plugin-manifest/SKILL.md",
-      "computedHash": "700438844d35d60d9ff236495996cf75f8a5857d53a51f6d726b6be9c2965f80"
+      "computedHash": "cd84042ddc55b6fe1b2415205f76adbf88e84804bbd5aacde50ae418c13ccb6a"
     }
   }
 }
