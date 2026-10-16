@@ -4,6 +4,7 @@ main: org.yuemi.mmoaccessories.plugin.AccessoriesPlugin
 authors: [${authors}]
 contributors: [${contributors}]
 api-version: '${apiVersion}'
+folia-supported: true
 softdepend: [
   YueMiLibs,
   MmoItems,

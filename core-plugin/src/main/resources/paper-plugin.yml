@@ -2,8 +2,9 @@ name: '${pluginName}'
 version: '${version}'
 main: org.yuemi.mmoaccessories.plugin.AccessoriesPlugin
 api-version: '${apiVersion}'
+folia-supported: true
 authors: [${authors}]
-contributors: [${contributors}']
+contributors: [${contributors}]
 
 dependencies:
   server:
